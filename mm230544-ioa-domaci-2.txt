@@ -1,0 +1,14 @@
+Marko Miajnović 0544/2023
+=====================================
+PRVIH 8 RUPA (LKH heuristic)
+=====================================
+Vrijeme izvodjenja: 0.076 s
+Najkraca duzina aproksimacija (L1): 113.1000 mm
+Redoslijed labela: [5, 2, 1, 8, 7, 6, 4, 3]
+
+=====================================
+PRVIH 12 RUPA (LKH heuristic)
+=====================================
+Vrijeme izvodjenja: 0.392 s
+Najkraca duzina aproksimacija (L1): 175.4000 mm
+Redoslijed labela: [11, 9, 5, 2, 1, 8, 7, 6, 10, 4, 3, 12]
