@@ -1,3 +1,4 @@
+import argparse
 import random
 import time
 
@@ -29,8 +30,18 @@ points_all = [
 def L1(a,b):
     return abs(a[0]-b[0]) + abs(a[1]-b[1])
 
-# LKH-like heuristic: Nearest Neighbor + 2-opt
-def lkh_heuristic(indices, iterations=300):
+# Open-path nearest-neighbor search with segment-reversal improvement.
+def nearest_neighbor_two_opt(indices, iterations=300, seed=None):
+    indices = list(indices)
+    if iterations < 1:
+        raise ValueError("iterations must be positive")
+    if len(set(indices)) != len(indices):
+        raise ValueError("indices must be unique")
+    if any(not isinstance(i, int) or i < 0 or i >= len(points_all) for i in indices):
+        raise ValueError("point index out of range")
+    if not indices:
+        return 0, []
+    rng = random.Random(seed)
     best_path = None
     best_len = float('inf')
 
@@ -47,9 +58,8 @@ def lkh_heuristic(indices, iterations=300):
         improved = True
         while improved:
             improved = False
-            for i in range(1, len(path)-2):
-                for j in range(i+1, len(path)):
-                    if j-i == 1: continue
+            for i in range(len(path)-1):
+                for j in range(i+2, len(path)+1):
                     new_path = path[:i] + path[i:j][::-1] + path[j:]
                     if path_length(new_path) < path_length(path):
                         path = new_path
@@ -58,7 +68,7 @@ def lkh_heuristic(indices, iterations=300):
 
     for _ in range(iterations):
         # random start node
-        start = random.choice(indices)
+        start = rng.choice(indices)
         unvisited = indices[:]
         unvisited.remove(start)
         path = [start]
@@ -79,19 +89,29 @@ def lkh_heuristic(indices, iterations=300):
 
     return best_len, best_path
 
-# Runner
-def run_case(n):
+# Compatibility with the original coursework entry point.
+def lkh_heuristic(indices, iterations=300, seed=None):
+    return nearest_neighbor_two_opt(indices, iterations, seed)
+
+def run_case(n, iterations=300, seed=None):
     indices = list(range(n))  # 0-based indices
     print("\n=====================================")
-    print(f"PRVIH {n} RUPA (LKH heuristic)")
+    print(f"PRVIH {n} RUPA (nearest neighbor + 2-opt)")
     print("=====================================")
     start_time = time.time()
-    best_len, best_path = lkh_heuristic(indices)
+    best_len, best_path = nearest_neighbor_two_opt(indices, iterations, seed)
     elapsed = time.time() - start_time
     print(f"Vrijeme izvodjenja: {elapsed:.3f} s")
     print(f"Najkraca duzina aproksimacija (L1): {best_len:.4f} mm")
     print("Redoslijed labela:", [i+1 for i in best_path])  # label = index+1
 
 if __name__ == "__main__":
-    run_case(8)
-    run_case(12)
+    parser = argparse.ArgumentParser(description="Optimize an open route using Manhattan distance.")
+    parser.add_argument('--points', type=int, nargs='+', default=[8, 12])
+    parser.add_argument('--iterations', type=int, default=300)
+    parser.add_argument('--seed', type=int)
+    args = parser.parse_args()
+    if args.iterations < 1 or any(n < 1 or n > len(points_all) for n in args.points):
+        parser.error('iterations must be positive; points must be between 1 and 20')
+    for n in args.points:
+        run_case(n, args.iterations, args.seed)
